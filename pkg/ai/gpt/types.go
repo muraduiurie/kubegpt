@@ -7,7 +7,7 @@ const (
 	Assistant string = "assistant"
 	System    string = "system"
 
-	// models
+	// chatgpt models
 	Gpt3_5_turbo_0301 string = "gpt-3.5-turbo-0301"
 	Gpt3_5_turbo_1106 string = "gpt-3.5-turbo-1106"
 	Gpt3_5_turbo      string = "gpt-3.5-turbo"
@@ -17,6 +17,10 @@ const (
 	Gpt4o_turbo       string = "gpt-4-turbo"
 	TTS1              string = "tts-1"
 	TTS1_HD           string = "tts-1-hd"
+
+	// deepseek models
+	DeepSeekChat     string = "deepseek-chat"
+	DeepSeekReasoner string = "deepseek-reasoner"
 
 	// tempertaure types
 	NoVariability       float32 = 0.0
