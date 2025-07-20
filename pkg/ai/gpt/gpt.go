@@ -8,8 +8,8 @@ import (
 	"github.com/muraduiurie/kubegpt/pkg/ai/helpers"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
-	"strings"
 )
 
 func GetGptConfig(logger logr.Logger) (*Client, error) {
@@ -38,7 +38,7 @@ func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
 	var gptEndpoint string
 	if opts.FileUrl != nil {
 		gptEndpoint = g.FileUrlEndpoint
-		g.Log.Info("FileUrl request received", "url", opts.FileUrl.Url)
+		g.Log.Info("FileUrl request received", "message", opts.Message, "url", opts.FileUrl.Url)
 		request.Input = []InputUrl{
 			{
 				Role: opts.Role,
@@ -56,7 +56,7 @@ func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
 		}
 	} else {
 		gptEndpoint = g.ChatEndpoint
-		g.Log.Info("Chat request received", "url", opts.FileUrl.Url)
+		g.Log.Info("Chat request received", "message", opts.Message)
 		request.Messages = []RequestMessage{
 			{
 				Role:    opts.Role,
@@ -69,9 +69,13 @@ func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal request: %v", err)
 	}
-	g.Log.Info("marshaled request", "json", string(jsonBody))
 
-	req, err := http.NewRequest(http.MethodPost, strings.Join([]string{g.Host, gptEndpoint}, "/"), bytes.NewBuffer(jsonBody))
+	host, err := url.JoinPath(g.Host, gptEndpoint)
+	if err != nil {
+		return "", fmt.Errorf("failed to join url")
+	}
+	g.Log.Info("request", "json", string(jsonBody), "host", host)
+	req, err := http.NewRequest(http.MethodPost, host, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %v", err)
 	}
