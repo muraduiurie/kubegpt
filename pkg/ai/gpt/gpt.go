@@ -18,10 +18,11 @@ func GetGptConfig(logger logr.Logger) (*Client, error) {
 	}
 
 	client := &Client{
-		Host:         "https://api.openai.com",
-		Token:        os.Getenv("GPT_API_TOKEN"),
-		ChatEndpoint: "v1/chat/completions",
-		Log:          logger,
+		Host:            "https://api.openai.com",
+		Token:           os.Getenv("GPT_API_TOKEN"),
+		ChatEndpoint:    "v1/chat/completions",
+		FileUrlEndpoint: "v1/responses",
+		Log:             logger,
 	}
 
 	return client, nil
@@ -34,7 +35,9 @@ func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
 		Temperature: ModerateVariability,
 	}
 
+	var gptEndpoint string
 	if opts.FileUrl != nil {
+		gptEndpoint = g.FileUrlEndpoint
 		g.Log.Info("FileUrl request received", "url", opts.FileUrl.Url)
 		request.Input = []InputUrl{
 			{
@@ -52,6 +55,7 @@ func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
 			},
 		}
 	} else {
+		gptEndpoint = g.ChatEndpoint
 		g.Log.Info("Chat request received", "url", opts.FileUrl.Url)
 		request.Messages = []RequestMessage{
 			{
@@ -67,7 +71,7 @@ func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
 		return "", fmt.Errorf("failed to marshal request: %v", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, strings.Join([]string{g.Host, g.ChatEndpoint}, "/"), bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, strings.Join([]string{g.Host, gptEndpoint}, "/"), bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %v", err)
 	}

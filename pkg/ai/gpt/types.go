@@ -31,10 +31,11 @@ const (
 )
 
 type Client struct {
-	Host         string
-	Token        string
-	ChatEndpoint string
-	Log          logr.Logger
+	Host            string
+	Token           string
+	ChatEndpoint    string
+	FileUrlEndpoint string
+	Log             logr.Logger
 }
 
 type AutoToTextResponse struct {
