@@ -64,12 +64,12 @@ func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
 			},
 		}
 	}
-	g.Log.Info(fmt.Sprintf("%+v", request))
 
 	jsonBody, err := json.Marshal(request)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal request: %v", err)
 	}
+	g.Log.Info("marshaled request", "json", string(jsonBody))
 
 	req, err := http.NewRequest(http.MethodPost, strings.Join([]string{g.Host, gptEndpoint}, "/"), bytes.NewBuffer(jsonBody))
 	if err != nil {
