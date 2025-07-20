@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
+	"github.com/muraduiurie/kubegpt/pkg/ai/helpers"
 	"io"
 	"net/http"
 	"os"
@@ -26,15 +27,15 @@ func GetDeepSeekConfig(logger logr.Logger) (*Client, error) {
 	return client, nil
 }
 
-func (g *Client) AskAi(message string, role string, model string) (string, error) {
-	g.Log.Info("AskAi", "message", message, "role", role, "model", model)
+func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
+	g.Log.Info("AskAi", "message", opts.Message, "role", opts.Role, "model", opts.Model)
 	request := ChatRequest{
-		Model:       model,
+		Model:       opts.Model,
 		Temperature: ModerateVariability,
 		Messages: []RequestMessage{
 			{
-				Role:    role,
-				Content: message,
+				Role:    opts.Role,
+				Content: opts.Message,
 			},
 		},
 	}

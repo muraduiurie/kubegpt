@@ -5,10 +5,11 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/muraduiurie/kubegpt/pkg/ai/deepseek"
 	"github.com/muraduiurie/kubegpt/pkg/ai/gpt"
+	"github.com/muraduiurie/kubegpt/pkg/ai/helpers"
 )
 
 type AiClient interface {
-	AskAi(message string, role string, model string) (string, error)
+	AskAi(opts helpers.AiOpts) (string, error)
 }
 
 func InitAiClient(client string, logger logr.Logger) (AiClient, error) {

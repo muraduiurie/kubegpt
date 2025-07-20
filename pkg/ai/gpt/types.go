@@ -18,16 +18,16 @@ const (
 	TTS1              string = "tts-1"
 	TTS1_HD           string = "tts-1-hd"
 
-	// deepseek models
-	DeepSeekChat     string = "deepseek-chat"
-	DeepSeekReasoner string = "deepseek-reasoner"
-
 	// tempertaure types
 	NoVariability       float32 = 0.0
 	DefaultVariability  float32 = 0.7
 	ModerateVariability float32 = 1.0
 	HighVariability     float32 = 1.5
 	MaximumVariability  float32 = 2.0
+
+	// content types
+	InputFile string = "input_file"
+	InputText string = "input_text"
 )
 
 type Client struct {
@@ -46,6 +46,18 @@ type ChatRequest struct {
 	Temperature float32          `json:"temperature"`
 	Messages    []RequestMessage `json:"messages"`
 	MaxTokens   int              `json:"max_tokens,omitempty"`
+	Input       []InputUrl       `json:"input"`
+}
+
+type ContentUrl struct {
+	Type    string `json:"type"`
+	FileUrl string `json:"file_url,omitempty"`
+	Text    string `json:"text,omitempty"`
+}
+
+type InputUrl struct {
+	Role    string       `json:"role"`
+	Content []ContentUrl `json:"content"`
 }
 
 type RequestMessage struct {
