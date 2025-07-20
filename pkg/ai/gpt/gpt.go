@@ -35,6 +35,7 @@ func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
 	}
 
 	if opts.FileUrl != nil {
+		g.Log.Info("FileUrl request received", "url", opts.FileUrl.Url)
 		request.Input = []InputUrl{
 			{
 				Role: opts.Role,
@@ -51,6 +52,7 @@ func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
 			},
 		}
 	} else {
+		g.Log.Info("Chat request received", "url", opts.FileUrl.Url)
 		request.Messages = []RequestMessage{
 			{
 				Role:    opts.Role,
@@ -58,6 +60,7 @@ func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
 			},
 		}
 	}
+	g.Log.Info(fmt.Sprintf("%+v", request))
 
 	jsonBody, err := json.Marshal(request)
 	if err != nil {
