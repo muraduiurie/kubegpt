@@ -45,7 +45,7 @@ type AutoToTextResponse struct {
 type ChatRequest struct {
 	Model       string           `json:"model"`
 	Temperature float32          `json:"temperature"`
-	Messages    []RequestMessage `json:"messages"`
+	Messages    []RequestMessage `json:"messages,omitempty"`
 	MaxTokens   int              `json:"max_tokens,omitempty"`
 	Input       []InputUrl       `json:"input"`
 }
