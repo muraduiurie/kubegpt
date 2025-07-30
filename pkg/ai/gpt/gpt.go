@@ -54,21 +54,10 @@ func (g *Client) AskAi(opts *helpers.RequestOpts) (Responser, error) {
 		g.Log.Info("FileInput request received", "message", opts.Message, "url", opts.FileUrl)
 		fir := FileInputRequest{
 			Model: model,
-			Input: []struct {
-				Role    string `json:"role"`
-				Content []struct {
-					Type    string `json:"type"`
-					Text    string `json:"text,omitempty"`
-					FileUrl string `json:"file_url,omitempty"`
-				} `json:"content"`
-			}{
+			Input: []FileInputRequestInput{
 				{
 					Role: role,
-					Content: []struct {
-						Type    string `json:"type"`
-						Text    string `json:"text,omitempty"`
-						FileUrl string `json:"file_url,omitempty"`
-					}{
+					Content: []FileInputRequestContent{
 						{
 							Type:    InputFile,
 							FileUrl: *opts.FileUrl,
@@ -88,21 +77,10 @@ func (g *Client) AskAi(opts *helpers.RequestOpts) (Responser, error) {
 		g.Log.Info("ImageInput request received", "message", opts.Message, "url", opts.ImageUrl)
 		iir := ImageInputRequest{
 			Model: model,
-			Input: []struct {
-				Role    string `json:"role"`
-				Content []struct {
-					Type     string `json:"type"`
-					Text     string `json:"text,omitempty"`
-					ImageUrl string `json:"image_url,omitempty"`
-				} `json:"content"`
-			}{
+			Input: []ImageInputRequestInput{
 				{
 					Role: role,
-					Content: []struct {
-						Type     string `json:"type"`
-						Text     string `json:"text,omitempty"`
-						ImageUrl string `json:"image_url,omitempty"`
-					}{
+					Content: []ImageInputRequestContent{
 						{
 							Type:     InputImage,
 							ImageUrl: *opts.ImageUrl,
@@ -126,6 +104,8 @@ func (g *Client) AskAi(opts *helpers.RequestOpts) (Responser, error) {
 		}
 		request = &tir
 		response = &TextInputResponse{}
+	default:
+		return nil, fmt.Errorf("unknown reuqest type: %s", requestType)
 	}
 
 	jsonRequestBody, err := request.Marshal()
