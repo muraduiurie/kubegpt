@@ -27,12 +27,12 @@ func GetGptConfig(logger logr.Logger) (*Client, error) {
 	return client, nil
 }
 
-func (g *Client) AskAi(opts *helpers.RequestOpts) (Responser, error) {
+func (g *Client) AskAi(opts helpers.RequestOpts) (Responser, error) {
 	var request Requester
 	var response Responser
 
 	if opts.Message == nil {
-		return nil, fmt.Errorf("message not specified")
+		return nil, fmt.Errorf("message not defined")
 	}
 
 	var model, role string
@@ -44,11 +44,11 @@ func (g *Client) AskAi(opts *helpers.RequestOpts) (Responser, error) {
 		role = helpers.UserRole
 	}
 	if opts.RequestType == nil {
-		requestType = helpers.TextRequestType
+		return nil, fmt.Errorf("request type not defined")
 	}
 
 	var gptEndpoint string
-	switch requestType {
+	switch *opts.RequestType {
 	case helpers.FileRequestType:
 		gptEndpoint = g.ResponsesEndpoint
 		g.Log.Info("FileInput request received", "message", opts.Message, "url", opts.FileUrl)
