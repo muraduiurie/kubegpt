@@ -8,7 +8,7 @@ import (
 )
 
 type AiClient interface {
-	AskAi(rt gpt.RequestType, opts helpers.RequestOpts) (gpt.Responser, error)
+	AskAi(rt helpers.RequestType, opts helpers.RequestOpts) (gpt.Responser, error)
 }
 
 func InitAiClient(client string, logger logr.Logger) (AiClient, error) {

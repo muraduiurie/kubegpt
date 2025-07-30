@@ -5,8 +5,6 @@ import (
 	"github.com/go-logr/logr"
 )
 
-type RequestType string
-
 const (
 	// tempertaure types
 	NoVariability       float32 = 0.0
@@ -19,11 +17,6 @@ const (
 	InputFile  string = "input_file"
 	InputImage string = "input_image"
 	InputText  string = "input_text"
-
-	// request types
-	FileRequestType  RequestType = "file"
-	ImageRequestType RequestType = "image"
-	TextRequestType  RequestType = "text"
 )
 
 type Client struct {

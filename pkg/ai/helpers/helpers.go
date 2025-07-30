@@ -16,7 +16,14 @@ const (
 	User      string = "user"
 	Assistant string = "assistant"
 	System    string = "system"
+
+	// request types
+	FileRequestType  RequestType = "file"
+	ImageRequestType RequestType = "image"
+	TextRequestType  RequestType = "text"
 )
+
+type RequestType string
 
 type RequestOpts struct {
 	Message  string

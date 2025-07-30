@@ -28,13 +28,13 @@ func GetGptConfig(logger logr.Logger) (*Client, error) {
 	return client, nil
 }
 
-func (g *Client) AskAi(rt RequestType, opts helpers.RequestOpts) (Responser, error) {
+func (g *Client) AskAi(rt helpers.RequestType, opts helpers.RequestOpts) (Responser, error) {
 	var request Requester
 	var response Responser
 
 	var gptEndpoint string
 	switch rt {
-	case FileRequestType:
+	case helpers.FileRequestType:
 		gptEndpoint = g.FileUrlEndpoint
 		g.Log.Info("FileInput request received", "message", opts.Message, "url", opts.FileUrl)
 		fir := FileInputRequest{
@@ -68,7 +68,7 @@ func (g *Client) AskAi(rt RequestType, opts helpers.RequestOpts) (Responser, err
 		}
 		request = &fir
 		response = &FileInputResponse{}
-	case ImageRequestType:
+	case helpers.ImageRequestType:
 		gptEndpoint = g.FileUrlEndpoint
 		g.Log.Info("ImageInput request received", "message", opts.Message, "url", opts.ImageUrl)
 		iir := ImageInputRequest{
@@ -102,7 +102,7 @@ func (g *Client) AskAi(rt RequestType, opts helpers.RequestOpts) (Responser, err
 		}
 		request = &iir
 		response = &ImageInputResponse{}
-	case TextRequestType:
+	case helpers.TextRequestType:
 		gptEndpoint = g.ChatEndpoint
 		g.Log.Info("Chat request received", "message", opts.Message)
 		tir := TextInputRequest{
