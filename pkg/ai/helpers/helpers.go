@@ -26,9 +26,10 @@ const (
 type RequestType string
 
 type RequestOpts struct {
-	Message  string
-	ImageUrl *string
-	FileUrl  *string
-	Model    *string
-	Role     *string
+	Message     *string
+	RequestType *RequestType
+	ImageUrl    *string
+	FileUrl     *string
+	Model       *string
+	Role        *string
 }

@@ -27,20 +27,28 @@ func GetGptConfig(logger logr.Logger) (*Client, error) {
 	return client, nil
 }
 
-func (g *Client) AskAi(rt helpers.RequestType, opts helpers.RequestOpts) (Responser, error) {
+func (g *Client) AskAi(opts *helpers.RequestOpts) (Responser, error) {
 	var request Requester
 	var response Responser
 
+	if opts.Message == nil {
+		return nil, fmt.Errorf("message not specified")
+	}
+
 	var model, role string
+	var requestType helpers.RequestType
 	if opts.Model == nil {
 		model = helpers.Gpt4_1
 	}
 	if opts.Role == nil {
 		role = helpers.UserRole
 	}
+	if opts.RequestType == nil {
+		requestType = helpers.TextRequestType
+	}
 
 	var gptEndpoint string
-	switch rt {
+	switch requestType {
 	case helpers.FileRequestType:
 		gptEndpoint = g.ResponsesEndpoint
 		g.Log.Info("FileInput request received", "message", opts.Message, "url", opts.FileUrl)
@@ -67,7 +75,7 @@ func (g *Client) AskAi(rt helpers.RequestType, opts helpers.RequestOpts) (Respon
 						},
 						{
 							Type: InputText,
-							Text: opts.Message,
+							Text: *opts.Message,
 						},
 					},
 				},
@@ -101,7 +109,7 @@ func (g *Client) AskAi(rt helpers.RequestType, opts helpers.RequestOpts) (Respon
 						},
 						{
 							Type: InputText,
-							Text: opts.Message,
+							Text: *opts.Message,
 						},
 					},
 				},
@@ -114,7 +122,7 @@ func (g *Client) AskAi(rt helpers.RequestType, opts helpers.RequestOpts) (Respon
 		g.Log.Info("Chat request received", "message", opts.Message)
 		tir := TextInputRequest{
 			Model: model,
-			Input: opts.Message,
+			Input: *opts.Message,
 		}
 		request = &tir
 		response = &TextInputResponse{}
