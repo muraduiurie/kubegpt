@@ -26,8 +26,9 @@ const (
 	MaximumVariability  float32 = 2.0
 
 	// content types
-	InputFile string = "input_file"
-	InputText string = "input_text"
+	InputFile  string = "input_file"
+	ImputImage string = "input_image"
+	InputText  string = "input_text"
 )
 
 type Client struct {

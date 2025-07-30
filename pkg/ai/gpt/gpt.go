@@ -36,16 +36,37 @@ func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
 	}
 
 	var gptEndpoint string
+	if opts.FileUrl != nil && opts.ImageUrl != nil {
+		return "", fmt.Errorf("file or image url only can be provided, both can not be provided")
+	}
 	if opts.FileUrl != nil {
 		gptEndpoint = g.FileUrlEndpoint
-		g.Log.Info("FileUrl request received", "message", opts.Message, "url", opts.FileUrl.Url)
+		g.Log.Info("FileUrl request received", "message", opts.Message, "url", opts.FileUrl.Hostname)
 		request.Input = []InputUrl{
 			{
 				Role: opts.Role,
 				Content: []ContentUrl{
 					{
 						Type:    InputFile,
-						FileUrl: opts.FileUrl.Url,
+						FileUrl: opts.FileUrl.Hostname,
+					},
+					{
+						Type: InputText,
+						Text: opts.Message,
+					},
+				},
+			},
+		}
+	} else if opts.ImageUrl != nil {
+		gptEndpoint = g.FileUrlEndpoint
+		g.Log.Info("ImageUrl request received", "message", opts.Message, "url", opts.ImageUrl.Hostname)
+		request.Input = []InputUrl{
+			{
+				Role: opts.Role,
+				Content: []ContentUrl{
+					{
+						Type:    ImputImage,
+						FileUrl: opts.ImageUrl.Hostname,
 					},
 					{
 						Type: InputText,

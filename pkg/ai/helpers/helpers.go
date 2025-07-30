@@ -5,11 +5,12 @@ type AiOpts struct {
 	Role       string
 	Model      string
 	FileUpload *FileUpload
-	FileUrl    *FileUrl
+	FileUrl    *Url
+	ImageUrl   *Url
 }
 
-type FileUrl struct {
-	Url string
+type Url struct {
+	Hostname string
 }
 
 type FileUpload struct{}
