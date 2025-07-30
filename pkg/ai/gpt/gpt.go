@@ -47,11 +47,12 @@ func (g *Client) AskAi(opts helpers.RequestOpts) (Responser, error) {
 		return nil, fmt.Errorf("request type not defined")
 	}
 
-	var gptEndpoint string
 	switch *opts.RequestType {
 	case helpers.FileRequestType:
-		gptEndpoint = g.ResponsesEndpoint
-		g.Log.Info("FileInput request received", "message", opts.Message, "url", opts.FileUrl)
+		if opts.FileUrl == nil {
+			return nil, fmt.Errorf("file url not defined")
+		}
+		g.Log.Info("File response request received", "message", opts.Message, "url", opts.FileUrl)
 		fir := FileInputRequest{
 			Model: model,
 			Input: []FileInputRequestInput{
@@ -73,8 +74,10 @@ func (g *Client) AskAi(opts helpers.RequestOpts) (Responser, error) {
 		request = &fir
 		response = &FileInputResponse{}
 	case helpers.ImageRequestType:
-		gptEndpoint = g.ResponsesEndpoint
-		g.Log.Info("ImageInput request received", "message", opts.Message, "url", opts.ImageUrl)
+		if opts.ImageUrl == nil {
+			return nil, fmt.Errorf("image url not defined")
+		}
+		g.Log.Info("Image response request received", "message", opts.Message, "url", opts.ImageUrl)
 		iir := ImageInputRequest{
 			Model: model,
 			Input: []ImageInputRequestInput{
@@ -96,8 +99,7 @@ func (g *Client) AskAi(opts helpers.RequestOpts) (Responser, error) {
 		request = &iir
 		response = &ImageInputResponse{}
 	case helpers.TextRequestType:
-		gptEndpoint = g.ResponsesEndpoint
-		g.Log.Info("Chat request received", "message", opts.Message)
+		g.Log.Info("Text response request received", "message", opts.Message)
 		tir := TextInputRequest{
 			Model: model,
 			Input: *opts.Message,
@@ -113,7 +115,7 @@ func (g *Client) AskAi(opts helpers.RequestOpts) (Responser, error) {
 		return nil, fmt.Errorf("failed to marshal request: %v", err)
 	}
 
-	host, err := url.JoinPath(g.Host, gptEndpoint)
+	host, err := url.JoinPath(g.Host, g.ResponsesEndpoint)
 	if err != nil {
 		return nil, fmt.Errorf("failed to join url")
 	}
