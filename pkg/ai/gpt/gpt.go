@@ -65,8 +65,8 @@ func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
 				Role: opts.Role,
 				Content: []ContentUrl{
 					{
-						Type:    ImputImage,
-						FileUrl: opts.ImageUrl.Hostname,
+						Type:     ImputImage,
+						ImageUrl: opts.ImageUrl.Hostname,
 					},
 					{
 						Type: InputText,

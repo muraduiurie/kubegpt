@@ -52,9 +52,10 @@ type ChatRequest struct {
 }
 
 type ContentUrl struct {
-	Type    string `json:"type"`
-	FileUrl string `json:"file_url,omitempty"`
-	Text    string `json:"text,omitempty"`
+	Type     string `json:"type"`
+	FileUrl  string `json:"file_url,omitempty"`
+	ImageUrl string `json:"image_url"`
+	Text     string `json:"text,omitempty"`
 }
 
 type InputUrl struct {
