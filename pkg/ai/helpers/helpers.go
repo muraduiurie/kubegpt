@@ -4,13 +4,15 @@ type AiOpts struct {
 	Message    string
 	Role       string
 	Model      string
-	FileUpload *FileUpload
-	FileUrl    *Url
-	ImageUrl   *Url
+	FileInput  *Url
+	ImageInput *Url
+	TextInput  *TextMessage
 }
 
 type Url struct {
 	Hostname string
 }
 
-type FileUpload struct{}
+type TextMessage struct {
+	Message string
+}

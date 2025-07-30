@@ -1,6 +1,9 @@
 package gpt
 
-import "github.com/go-logr/logr"
+import (
+	"encoding/json"
+	"github.com/go-logr/logr"
+)
 
 const (
 	User      string = "user"
@@ -27,7 +30,7 @@ const (
 
 	// content types
 	InputFile  string = "input_file"
-	ImputImage string = "input_image"
+	InputImage string = "input_image"
 	InputText  string = "input_text"
 )
 
@@ -39,71 +42,232 @@ type Client struct {
 	Log             logr.Logger
 }
 
-type AutoToTextResponse struct {
-	Text string `json:"text"`
+type Requester interface {
+	Marshal() ([]byte, error)
 }
 
-type ChatRequest struct {
-	Model       string           `json:"model"`
-	Temperature float32          `json:"temperature"`
-	Messages    []RequestMessage `json:"messages,omitempty"`
-	MaxTokens   int              `json:"max_tokens,omitempty"`
-	Input       []InputUrl       `json:"input"`
+type Responser interface {
+	Unmarshal(b []byte) error
 }
 
-type ContentUrl struct {
-	Type     string `json:"type"`
-	FileUrl  string `json:"file_url,omitempty"`
-	ImageUrl string `json:"image_url,omitempty"`
-	Text     string `json:"text,omitempty"`
-}
-
-type InputUrl struct {
-	Role    string       `json:"role"`
-	Content []ContentUrl `json:"content"`
-}
-
-type RequestMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
-type TextToAudioRequest struct {
+// requests
+type TextInputRequest struct {
 	Model string `json:"model"`
 	Input string `json:"input"`
-	Voice string `json:"voice"`
 }
 
-type ResponseUsage struct {
-	PromptTokens     int `json:"prompt_tokens"`
-	CompletionTokens int `json:"completion_tokens"`
-	TotalTokens      int `json:"total_tokens"`
+type ImageInputRequest struct {
+	Model string `json:"model"`
+	Input []struct {
+		Role    string `json:"role"`
+		Content []struct {
+			Type     string `json:"type"`
+			Text     string `json:"text,omitempty"`
+			ImageUrl string `json:"image_url,omitempty"`
+		} `json:"content"`
+	} `json:"input"`
 }
 
-type ResponseMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+type FileInputRequest struct {
+	Model string `json:"model"`
+	Input []struct {
+		Role    string `json:"role"`
+		Content []struct {
+			Type    string `json:"type"`
+			Text    string `json:"text,omitempty"`
+			FileUrl string `json:"file_url,omitempty"`
+		} `json:"content"`
+	} `json:"input"`
 }
 
-type ResponseChoices struct {
-	Message      ResponseMessage `json:"message"`
-	FinishReason string          `json:"finish_reason"`
-	Index        int             `json:"index"`
+// responses
+type ImageInputResponse struct {
+	Id                string      `json:"id"`
+	Object            string      `json:"object"`
+	CreatedAt         int         `json:"created_at"`
+	Status            string      `json:"status"`
+	Error             interface{} `json:"error"`
+	IncompleteDetails interface{} `json:"incomplete_details"`
+	Instructions      interface{} `json:"instructions"`
+	MaxOutputTokens   interface{} `json:"max_output_tokens"`
+	Model             string      `json:"model"`
+	Output            []struct {
+		Type    string `json:"type"`
+		Id      string `json:"id"`
+		Status  string `json:"status"`
+		Role    string `json:"role"`
+		Content []struct {
+			Type        string        `json:"type"`
+			Text        string        `json:"text"`
+			Annotations []interface{} `json:"annotations"`
+		} `json:"content"`
+	} `json:"output"`
+	ParallelToolCalls  bool        `json:"parallel_tool_calls"`
+	PreviousResponseId interface{} `json:"previous_response_id"`
+	Reasoning          struct {
+		Effort  interface{} `json:"effort"`
+		Summary interface{} `json:"summary"`
+	} `json:"reasoning"`
+	Store       bool    `json:"store"`
+	Temperature float64 `json:"temperature"`
+	Text        struct {
+		Format struct {
+			Type string `json:"type"`
+		} `json:"format"`
+	} `json:"text"`
+	ToolChoice string        `json:"tool_choice"`
+	Tools      []interface{} `json:"tools"`
+	TopP       float64       `json:"top_p"`
+	Truncation string        `json:"truncation"`
+	Usage      struct {
+		InputTokens        int `json:"input_tokens"`
+		InputTokensDetails struct {
+			CachedTokens int `json:"cached_tokens"`
+		} `json:"input_tokens_details"`
+		OutputTokens        int `json:"output_tokens"`
+		OutputTokensDetails struct {
+			ReasoningTokens int `json:"reasoning_tokens"`
+		} `json:"output_tokens_details"`
+		TotalTokens int `json:"total_tokens"`
+	} `json:"usage"`
+	User     interface{} `json:"user"`
+	Metadata struct {
+	} `json:"metadata"`
 }
 
-type ChatResponse struct {
-	Id      string            `json:"id"`
-	Object  string            `json:"object"`
-	Created int64             `json:"created"`
-	Model   string            `json:"model"`
-	Usage   ResponseUsage     `json:"usage"`
-	Choices []ResponseChoices `json:"choices"`
+type TextInputResponse struct {
+	Id                string      `json:"id"`
+	Object            string      `json:"object"`
+	CreatedAt         int         `json:"created_at"`
+	Status            string      `json:"status"`
+	Error             interface{} `json:"error"`
+	IncompleteDetails interface{} `json:"incomplete_details"`
+	Instructions      interface{} `json:"instructions"`
+	MaxOutputTokens   interface{} `json:"max_output_tokens"`
+	Model             string      `json:"model"`
+	Output            []struct {
+		Type    string `json:"type"`
+		Id      string `json:"id"`
+		Status  string `json:"status"`
+		Role    string `json:"role"`
+		Content []struct {
+			Type        string        `json:"type"`
+			Text        string        `json:"text"`
+			Annotations []interface{} `json:"annotations"`
+		} `json:"content"`
+	} `json:"output"`
+	ParallelToolCalls  bool        `json:"parallel_tool_calls"`
+	PreviousResponseId interface{} `json:"previous_response_id"`
+	Reasoning          struct {
+		Effort  interface{} `json:"effort"`
+		Summary interface{} `json:"summary"`
+	} `json:"reasoning"`
+	Store       bool    `json:"store"`
+	Temperature float64 `json:"temperature"`
+	Text        struct {
+		Format struct {
+			Type string `json:"type"`
+		} `json:"format"`
+	} `json:"text"`
+	ToolChoice string        `json:"tool_choice"`
+	Tools      []interface{} `json:"tools"`
+	TopP       float64       `json:"top_p"`
+	Truncation string        `json:"truncation"`
+	Usage      struct {
+		InputTokens        int `json:"input_tokens"`
+		InputTokensDetails struct {
+			CachedTokens int `json:"cached_tokens"`
+		} `json:"input_tokens_details"`
+		OutputTokens        int `json:"output_tokens"`
+		OutputTokensDetails struct {
+			ReasoningTokens int `json:"reasoning_tokens"`
+		} `json:"output_tokens_details"`
+		TotalTokens int `json:"total_tokens"`
+	} `json:"usage"`
+	User     interface{} `json:"user"`
+	Metadata struct {
+	} `json:"metadata"`
 }
 
-type ClientResponse struct {
-	Message string `json:"message"`
-	Contact bool   `json:"did client mention to be contacted?"`
-	Phone   string `json:"phone"`
-	Email   string `json:"email"`
-	Product string `json:"desired product"`
+type FileInputResponse struct {
+	Id                string      `json:"id"`
+	Object            string      `json:"object"`
+	CreatedAt         int         `json:"created_at"`
+	Status            string      `json:"status"`
+	Background        bool        `json:"background"`
+	Error             interface{} `json:"error"`
+	IncompleteDetails interface{} `json:"incomplete_details"`
+	Instructions      interface{} `json:"instructions"`
+	MaxOutputTokens   interface{} `json:"max_output_tokens"`
+	MaxToolCalls      interface{} `json:"max_tool_calls"`
+	Model             string      `json:"model"`
+	Output            []struct {
+		Id      string `json:"id"`
+		Type    string `json:"type"`
+		Status  string `json:"status"`
+		Content []struct {
+			Type        string        `json:"type"`
+			Annotations []interface{} `json:"annotations"`
+			Logprobs    []interface{} `json:"logprobs"`
+			Text        string        `json:"text"`
+		} `json:"content"`
+		Role string `json:"role"`
+	} `json:"output"`
+	ParallelToolCalls  bool        `json:"parallel_tool_calls"`
+	PreviousResponseId interface{} `json:"previous_response_id"`
+	Reasoning          struct {
+		Effort  interface{} `json:"effort"`
+		Summary interface{} `json:"summary"`
+	} `json:"reasoning"`
+	ServiceTier string  `json:"service_tier"`
+	Store       bool    `json:"store"`
+	Temperature float64 `json:"temperature"`
+	Text        struct {
+		Format struct {
+			Type string `json:"type"`
+		} `json:"format"`
+	} `json:"text"`
+	ToolChoice  string        `json:"tool_choice"`
+	Tools       []interface{} `json:"tools"`
+	TopLogprobs int           `json:"top_logprobs"`
+	TopP        float64       `json:"top_p"`
+	Truncation  string        `json:"truncation"`
+	Usage       struct {
+		InputTokens        int `json:"input_tokens"`
+		InputTokensDetails struct {
+			CachedTokens int `json:"cached_tokens"`
+		} `json:"input_tokens_details"`
+		OutputTokens        int `json:"output_tokens"`
+		OutputTokensDetails struct {
+			ReasoningTokens int `json:"reasoning_tokens"`
+		} `json:"output_tokens_details"`
+		TotalTokens int `json:"total_tokens"`
+	} `json:"usage"`
+	User     interface{} `json:"user"`
+	Metadata struct {
+	} `json:"metadata"`
+}
+
+func (r *TextInputRequest) Marshal() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+func (r *ImageInputRequest) Marshal() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+func (r *FileInputRequest) Marshal() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+func (r *TextInputResponse) Unmarshal(b []byte) error {
+	return json.Unmarshal(b, r)
+}
+
+func (r *ImageInputResponse) Unmarshal(b []byte) error {
+	return json.Unmarshal(b, r)
+}
+
+func (r *FileInputResponse) Unmarshal(b []byte) error {
+	return json.Unmarshal(b, r)
 }

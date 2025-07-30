@@ -28,77 +28,105 @@ func GetGptConfig(logger logr.Logger) (*Client, error) {
 	return client, nil
 }
 
-func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
+func (g *Client) AskAi(opts helpers.AiOpts) (Responser, error) {
 	g.Log.Info("AskAi", "message", opts.Message, "role", opts.Role, "model", opts.Model)
-	request := ChatRequest{
-		Model:       opts.Model,
-		Temperature: ModerateVariability,
-	}
+	var request Requester
+	var response Responser
 
 	var gptEndpoint string
-	if opts.FileUrl != nil && opts.ImageUrl != nil {
-		return "", fmt.Errorf("file or image url only can be provided, both can not be provided")
-	}
-	if opts.FileUrl != nil {
+	switch {
+	case opts.FileInput != nil:
 		gptEndpoint = g.FileUrlEndpoint
-		g.Log.Info("FileUrl request received", "message", opts.Message, "url", opts.FileUrl.Hostname)
-		request.Input = []InputUrl{
-			{
-				Role: opts.Role,
-				Content: []ContentUrl{
-					{
-						Type:    InputFile,
-						FileUrl: opts.FileUrl.Hostname,
-					},
-					{
-						Type: InputText,
-						Text: opts.Message,
+		g.Log.Info("FileInput request received", "message", opts.Message, "url", opts.FileInput.Hostname)
+		fir := FileInputRequest{
+			Model: opts.Model,
+			Input: []struct {
+				Role    string `json:"role"`
+				Content []struct {
+					Type    string `json:"type"`
+					Text    string `json:"text,omitempty"`
+					FileUrl string `json:"file_url,omitempty"`
+				} `json:"content"`
+			}{
+				{
+					Role: opts.Role,
+					Content: []struct {
+						Type    string `json:"type"`
+						Text    string `json:"text,omitempty"`
+						FileUrl string `json:"file_url,omitempty"`
+					}{
+						{
+							Type:    InputFile,
+							FileUrl: opts.FileInput.Hostname,
+						},
+						{
+							Type: InputText,
+							Text: opts.Message,
+						},
 					},
 				},
 			},
 		}
-	} else if opts.ImageUrl != nil {
+		request = &fir
+		response = &FileInputResponse{}
+	case opts.ImageInput != nil:
 		gptEndpoint = g.FileUrlEndpoint
-		g.Log.Info("ImageUrl request received", "message", opts.Message, "url", opts.ImageUrl.Hostname)
-		request.Input = []InputUrl{
-			{
-				Role: opts.Role,
-				Content: []ContentUrl{
-					{
-						Type:     ImputImage,
-						ImageUrl: opts.ImageUrl.Hostname,
-					},
-					{
-						Type: InputText,
-						Text: opts.Message,
+		g.Log.Info("ImageInput request received", "message", opts.Message, "url", opts.ImageInput.Hostname)
+		iir := ImageInputRequest{
+			Model: opts.Model,
+			Input: []struct {
+				Role    string `json:"role"`
+				Content []struct {
+					Type     string `json:"type"`
+					Text     string `json:"text,omitempty"`
+					ImageUrl string `json:"image_url,omitempty"`
+				} `json:"content"`
+			}{
+				{
+					Role: opts.Role,
+					Content: []struct {
+						Type     string `json:"type"`
+						Text     string `json:"text,omitempty"`
+						ImageUrl string `json:"image_url,omitempty"`
+					}{
+						{
+							Type:     InputImage,
+							ImageUrl: opts.ImageInput.Hostname,
+						},
+						{
+							Type: InputText,
+							Text: opts.Message,
+						},
 					},
 				},
 			},
 		}
-	} else {
+		request = &iir
+		response = &ImageInputResponse{}
+	case opts.TextInput != nil:
 		gptEndpoint = g.ChatEndpoint
 		g.Log.Info("Chat request received", "message", opts.Message)
-		request.Messages = []RequestMessage{
-			{
-				Role:    opts.Role,
-				Content: opts.Message,
-			},
+		tir := TextInputRequest{
+			Model: opts.Model,
+			Input: opts.Message,
 		}
+		request = &tir
+		response = &TextInputResponse{}
 	}
 
-	jsonBody, err := json.Marshal(request)
+	jsonRequestBody, err := request.Marshal()
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal request: %v", err)
+		return nil, fmt.Errorf("failed to marshal request: %v", err)
 	}
 
 	host, err := url.JoinPath(g.Host, gptEndpoint)
 	if err != nil {
-		return "", fmt.Errorf("failed to join url")
+		return nil, fmt.Errorf("failed to join url")
 	}
-	g.Log.Info("request", "json", string(jsonBody), "host", host)
-	req, err := http.NewRequest(http.MethodPost, host, bytes.NewBuffer(jsonBody))
+	g.Log.Info("request", "json", string(jsonRequestBody), "host", host)
+	req, err := http.NewRequest(http.MethodPost, host, bytes.NewBuffer(jsonRequestBody))
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %v", err)
+		return nil, fmt.Errorf("failed to create request: %v", err)
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", g.Token))
@@ -108,28 +136,27 @@ func (g *Client) AskAi(opts helpers.AiOpts) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to send request: %v", err)
+		return nil, fmt.Errorf("failed to send request: %v", err)
 	}
 
 	// handle response
 	defer resp.Body.Close()
 
 	// read the response body
-	jsonBodyResponse, err := io.ReadAll(resp.Body)
+	jsonResponseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("failed to read response: %v", err)
+		return nil, fmt.Errorf("failed to read response: %v", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("request failed with status code %d: %s", resp.StatusCode, string(jsonBodyResponse))
+		return nil, fmt.Errorf("request failed with status code %d: %s", resp.StatusCode, string(jsonResponseBody))
 	}
 
-	newResponse := ChatResponse{}
-	err = json.Unmarshal(jsonBodyResponse, &newResponse)
+	err = json.Unmarshal(jsonResponseBody, response)
 	if err != nil {
-		return "", fmt.Errorf("failed to unmarshal response: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
 	}
 
-	g.Log.Info("Got response", "response", newResponse)
+	g.Log.Info("Got response", "response", response)
 
-	return newResponse.Choices[0].Message.Content, nil
+	return response, nil
 }
