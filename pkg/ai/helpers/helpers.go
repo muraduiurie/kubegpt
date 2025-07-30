@@ -26,10 +26,10 @@ const (
 type RequestType string
 
 type RequestOpts struct {
-	Message     *string
-	RequestType *RequestType
-	ImageUrl    *string
-	FileUrl     *string
-	Model       *string
-	Role        *string
+	Message     *string      `json:"message,omitempty"`
+	RequestType *RequestType `json:"request-type,omitempty"`
+	ImageUrl    *string      `json:"image-url,omitempty"`
+	FileUrl     *string      `json:"file-url,omitempty"`
+	Model       *string      `json:"model,omitempty"`
+	Role        *string      `json:"role,omitempty"`
 }
