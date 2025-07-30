@@ -18,11 +18,10 @@ func GetGptConfig(logger logr.Logger) (*Client, error) {
 	}
 
 	client := &Client{
-		Host:            "https://api.openai.com",
-		Token:           os.Getenv("GPT_API_TOKEN"),
-		ChatEndpoint:    "v1/chat/completions",
-		FileUrlEndpoint: "v1/responses",
-		Log:             logger,
+		Host:              "https://api.openai.com",
+		Token:             os.Getenv("GPT_API_TOKEN"),
+		ResponsesEndpoint: "v1/responses",
+		Log:               logger,
 	}
 
 	return client, nil
@@ -32,13 +31,21 @@ func (g *Client) AskAi(rt helpers.RequestType, opts helpers.RequestOpts) (Respon
 	var request Requester
 	var response Responser
 
+	var model, role string
+	if opts.Model == nil {
+		model = helpers.Gpt4_1
+	}
+	if opts.Role == nil {
+		role = helpers.UserRole
+	}
+
 	var gptEndpoint string
 	switch rt {
 	case helpers.FileRequestType:
-		gptEndpoint = g.FileUrlEndpoint
+		gptEndpoint = g.ResponsesEndpoint
 		g.Log.Info("FileInput request received", "message", opts.Message, "url", opts.FileUrl)
 		fir := FileInputRequest{
-			Model: opts.Model,
+			Model: model,
 			Input: []struct {
 				Role    string `json:"role"`
 				Content []struct {
@@ -48,7 +55,7 @@ func (g *Client) AskAi(rt helpers.RequestType, opts helpers.RequestOpts) (Respon
 				} `json:"content"`
 			}{
 				{
-					Role: opts.Role,
+					Role: role,
 					Content: []struct {
 						Type    string `json:"type"`
 						Text    string `json:"text,omitempty"`
@@ -56,7 +63,7 @@ func (g *Client) AskAi(rt helpers.RequestType, opts helpers.RequestOpts) (Respon
 					}{
 						{
 							Type:    InputFile,
-							FileUrl: opts.FileUrl,
+							FileUrl: *opts.FileUrl,
 						},
 						{
 							Type: InputText,
@@ -69,10 +76,10 @@ func (g *Client) AskAi(rt helpers.RequestType, opts helpers.RequestOpts) (Respon
 		request = &fir
 		response = &FileInputResponse{}
 	case helpers.ImageRequestType:
-		gptEndpoint = g.FileUrlEndpoint
+		gptEndpoint = g.ResponsesEndpoint
 		g.Log.Info("ImageInput request received", "message", opts.Message, "url", opts.ImageUrl)
 		iir := ImageInputRequest{
-			Model: opts.Model,
+			Model: model,
 			Input: []struct {
 				Role    string `json:"role"`
 				Content []struct {
@@ -82,7 +89,7 @@ func (g *Client) AskAi(rt helpers.RequestType, opts helpers.RequestOpts) (Respon
 				} `json:"content"`
 			}{
 				{
-					Role: opts.Role,
+					Role: role,
 					Content: []struct {
 						Type     string `json:"type"`
 						Text     string `json:"text,omitempty"`
@@ -90,7 +97,7 @@ func (g *Client) AskAi(rt helpers.RequestType, opts helpers.RequestOpts) (Respon
 					}{
 						{
 							Type:     InputImage,
-							ImageUrl: opts.ImageUrl,
+							ImageUrl: *opts.ImageUrl,
 						},
 						{
 							Type: InputText,
@@ -103,10 +110,10 @@ func (g *Client) AskAi(rt helpers.RequestType, opts helpers.RequestOpts) (Respon
 		request = &iir
 		response = &ImageInputResponse{}
 	case helpers.TextRequestType:
-		gptEndpoint = g.ChatEndpoint
+		gptEndpoint = g.ResponsesEndpoint
 		g.Log.Info("Chat request received", "message", opts.Message)
 		tir := TextInputRequest{
-			Model: opts.Model,
+			Model: model,
 			Input: opts.Message,
 		}
 		request = &tir

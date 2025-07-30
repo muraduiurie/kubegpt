@@ -20,11 +20,10 @@ const (
 )
 
 type Client struct {
-	Host            string
-	Token           string
-	ChatEndpoint    string
-	FileUrlEndpoint string
-	Log             logr.Logger
+	Host              string
+	Token             string
+	ResponsesEndpoint string
+	Log               logr.Logger
 }
 
 type Requester interface {

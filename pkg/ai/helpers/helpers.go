@@ -13,9 +13,9 @@ const (
 	TTS1_HD           string = "tts-1-hd"
 
 	// roles
-	User      string = "user"
-	Assistant string = "assistant"
-	System    string = "system"
+	UserRole      string = "user"
+	AssistantRole string = "assistant"
+	SystemRole    string = "system"
 
 	// request types
 	FileRequestType  RequestType = "file"
@@ -27,8 +27,8 @@ type RequestType string
 
 type RequestOpts struct {
 	Message  string
-	ImageUrl string
-	FileUrl  string
-	Model    string
-	Role     string
+	ImageUrl *string
+	FileUrl  *string
+	Model    *string
+	Role     *string
 }
