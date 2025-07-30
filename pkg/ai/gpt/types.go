@@ -54,7 +54,7 @@ type ChatRequest struct {
 type ContentUrl struct {
 	Type     string `json:"type"`
 	FileUrl  string `json:"file_url,omitempty"`
-	ImageUrl string `json:"image_url"`
+	ImageUrl string `json:"image_url,omitempty"`
 	Text     string `json:"text,omitempty"`
 }
 
