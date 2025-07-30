@@ -3,13 +3,12 @@ package ai
 import (
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/muraduiurie/kubegpt/pkg/ai/deepseek"
 	"github.com/muraduiurie/kubegpt/pkg/ai/gpt"
 	"github.com/muraduiurie/kubegpt/pkg/ai/helpers"
 )
 
 type AiClient interface {
-	AskAi(opts helpers.AiOpts) (string, error)
+	AskAi(rt gpt.RequestType, opts helpers.RequestOpts) (gpt.Responser, error)
 }
 
 func InitAiClient(client string, logger logr.Logger) (AiClient, error) {
@@ -20,12 +19,6 @@ func InitAiClient(client string, logger logr.Logger) (AiClient, error) {
 			return nil, fmt.Errorf("unable to get gpt configuration: %v", err)
 		}
 		return gptClient, nil
-	case DeepSeek:
-		deepSeekClient, err := deepseek.GetDeepSeekConfig(logger.WithName("deepseek"))
-		if err != nil {
-			return nil, fmt.Errorf("unable to get deepseek configuration: %v", err)
-		}
-		return deepSeekClient, nil
 	case "":
 		return nil, fmt.Errorf("AI client not specified")
 	default:

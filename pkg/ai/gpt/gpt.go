@@ -28,16 +28,15 @@ func GetGptConfig(logger logr.Logger) (*Client, error) {
 	return client, nil
 }
 
-func (g *Client) AskAi(opts helpers.AiOpts) (Responser, error) {
-	g.Log.Info("AskAi", "message", opts.Message, "role", opts.Role, "model", opts.Model)
+func (g *Client) AskAi(rt RequestType, opts helpers.RequestOpts) (Responser, error) {
 	var request Requester
 	var response Responser
 
 	var gptEndpoint string
-	switch {
-	case opts.FileInput != nil:
+	switch rt {
+	case FileRequestType:
 		gptEndpoint = g.FileUrlEndpoint
-		g.Log.Info("FileInput request received", "message", opts.Message, "url", opts.FileInput.Hostname)
+		g.Log.Info("FileInput request received", "message", opts.Message, "url", opts.FileUrl)
 		fir := FileInputRequest{
 			Model: opts.Model,
 			Input: []struct {
@@ -57,7 +56,7 @@ func (g *Client) AskAi(opts helpers.AiOpts) (Responser, error) {
 					}{
 						{
 							Type:    InputFile,
-							FileUrl: opts.FileInput.Hostname,
+							FileUrl: opts.FileUrl,
 						},
 						{
 							Type: InputText,
@@ -69,9 +68,9 @@ func (g *Client) AskAi(opts helpers.AiOpts) (Responser, error) {
 		}
 		request = &fir
 		response = &FileInputResponse{}
-	case opts.ImageInput != nil:
+	case ImageRequestType:
 		gptEndpoint = g.FileUrlEndpoint
-		g.Log.Info("ImageInput request received", "message", opts.Message, "url", opts.ImageInput.Hostname)
+		g.Log.Info("ImageInput request received", "message", opts.Message, "url", opts.ImageUrl)
 		iir := ImageInputRequest{
 			Model: opts.Model,
 			Input: []struct {
@@ -91,7 +90,7 @@ func (g *Client) AskAi(opts helpers.AiOpts) (Responser, error) {
 					}{
 						{
 							Type:     InputImage,
-							ImageUrl: opts.ImageInput.Hostname,
+							ImageUrl: opts.ImageUrl,
 						},
 						{
 							Type: InputText,
@@ -103,7 +102,7 @@ func (g *Client) AskAi(opts helpers.AiOpts) (Responser, error) {
 		}
 		request = &iir
 		response = &ImageInputResponse{}
-	case opts.TextInput != nil:
+	case TextRequestType:
 		gptEndpoint = g.ChatEndpoint
 		g.Log.Info("Chat request received", "message", opts.Message)
 		tir := TextInputRequest{
